@@ -1,0 +1,16 @@
+import { chromium } from 'playwright-core';
+const browser = await chromium.launch({ executablePath: process.argv[2] });
+const page = await browser.newPage({ viewport: { width: 1360, height: 1000 } });
+await page.goto('http://localhost:4173/', { waitUntil: 'networkidle' });
+await page.waitForTimeout(300);
+await page.locator('input[type=file]').setInputFiles('/workspace/public/sample.csv');
+await page.waitForTimeout(500);
+const msg = await page.locator('[role=status]').allInnerTexts();
+console.log('STATUS:', msg.join(' | '));
+console.log('HERO:', await page.locator('.verdict .hero').innerText());
+const holdInputs = await page.locator('.field input.wide').evaluateAll((els) => els.map((e) => e.value));
+console.log('HOLD INPUTS:', JSON.stringify(holdInputs));
+const rank = await page.locator('table.rank tbody tr').allInnerTexts();
+console.log('RANK ROWS:', rank.length);
+console.log('FIRST RANK:', rank[0].replace(/\t/g, ' ').slice(0, 80));
+await browser.close();
